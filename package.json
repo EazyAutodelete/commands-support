@@ -1,6 +1,6 @@
 {
   "name": "@eazyautodelete/commands-support",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "💾 This EazyAutodelete-Module implements the support of ApplicationCommands.",
   "main": "src/CommandSupport.js",
   "scripts": {
@@ -20,6 +20,8 @@
     "src/**/*.js",
     "src/*.ts",
     "src/**/*.ts",
+    "src/*.txt",
+    "src/**/*.txt",
     ".npmrc",
     "tsconfig.json"
   ],

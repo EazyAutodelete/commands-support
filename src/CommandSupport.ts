@@ -32,7 +32,7 @@ class CommandSupport extends Module {
   }
 
   clientReady() {
-    console.log("test command support");
+    this.logger.info("[💬] CommandSupport available!");
   }
 
   async interactionCreate(interaction: Interaction) {
@@ -212,13 +212,13 @@ class CommandSupport extends Module {
       }
 
       const menu = new CommandMenu(this.bot, interaction);
-      const args = new CommandMenuArgs(menu)
+      const args = new CommandMenuArgs(menu);
       if (args.isCommand()) {
         const commandName = args.getCommand();
         const command = <Command>this.bot.commands.get(commandName);
         if (!command) return this.logger.warn(`Command:SelectMenu ${commandName} not found!`, "CMD");
 
-        await menu.loadData()
+        await menu.loadData();
 
         return command.selectMenuHandler(menu, args);
       }
@@ -248,7 +248,7 @@ class CommandSupport extends Module {
 
         return await command.buttonHandler(button, args);
       }
-    } else if(interaction.isModalSubmit()) {
+    } else if (interaction.isModalSubmit()) {
       const modal = new CommandModal(this.bot, interaction);
       const args = new CommandModalArgs(modal);
 
