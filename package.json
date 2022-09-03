@@ -1,0 +1,53 @@
+{
+  "name": "@eazyautodelete/commands-support",
+  "version": "1.0.0",
+  "description": "💾 This EazyAutodelete-Module implements the support of ApplicationCommands.",
+  "main": "src/CommandSupport.js",
+  "scripts": {
+    "format": "npx prettier --write .",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EazyAutodelete/commands-support.git"
+  },
+  "keywords": [
+    "commandssupport",
+    "eazyautodelete"
+  ],
+  "files": [
+    "src/*.js",
+    "src/**/*.js",
+    "src/*.ts",
+    "src/**/*.ts",
+    ".npmrc",
+    "tsconfig.json"
+  ],
+  "author": {
+    "name": "qreepex",
+    "email": "dev@qreepex.xyz",
+    "url": "https://qreepex.xyz"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EazyAutodelete/commands-support/issues"
+  },
+  "homepage": "https://github.com/EazyAutodelete/commands-support#readme",
+  "dependencies": {
+    "@eazyautodelete/eazyautodelete-core": "^3.1.6",
+    "discord.js": "^13.10.3",
+    "typescript": "^4.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.14",
+    "commitizen": "^4.2.5",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^8.0.1",
+    "prettier": "^2.7.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
