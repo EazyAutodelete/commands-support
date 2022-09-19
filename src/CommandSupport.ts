@@ -10,7 +10,7 @@ import {
   CommandMenuArgs,
   CommandModal,
   CommandModalArgs,
-} from "@eazyautodelete/eazyautodelete-core";
+} from "@eazyautodelete/core";
 import {
   ColorResolvable,
   GuildMember,
