@@ -22,7 +22,7 @@ import {
   Permissions,
   SnowflakeUtil,
 } from "discord.js";
-import { textChangeRangeIsUnchanged } from "typescript";
+import { msToDate, msToDuration } from "@eazyautodelete/bot-utils";
 
 const now = performance.now;
 
@@ -80,18 +80,21 @@ class CommandSupport extends Module {
         return this.logger.error("Failed to load Member " + interaction.user.id + " in Guild " + interaction.guild.id);
       interaction.member = member;
 
+      await message.loadData();
+
       const cooldown = this.bot.cooldowns.hasCooldown(commandName, member.user.id);
       if (cooldown) {
         const cooldownEmbed = new MessageEmbed()
           .setTimestamp()
           .setColor(this.bot.utils.getColor("error") as ColorResolvable)
-          .setDescription(message.translate("onCooldown", cooldown.toString()))
+          .setDescription(
+            message.translate("onCooldown", msToDuration(cooldown).length > 5 ? msToDuration(cooldown) : "1 second")
+          )
           .setFooter({
             text: "EazyAutodelete",
-            iconURL:
-              this.client.user!.avatarURL({
-                dynamic: true,
-              }) || "",
+            iconURL: this.client.user!.avatarURL({
+              dynamic: true,
+            })!,
           });
 
         return await interaction.reply({
@@ -99,8 +102,6 @@ class CommandSupport extends Module {
           ephemeral: true,
         });
       }
-
-      await message.loadData();
 
       // TODO disabledCommands
       /**
