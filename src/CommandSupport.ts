@@ -22,6 +22,7 @@ import {
   Permissions,
   SnowflakeUtil,
 } from "discord.js";
+import { textChangeRangeIsUnchanged } from "typescript";
 
 const now = performance.now;
 
@@ -36,7 +37,7 @@ class CommandSupport extends Module {
   }
 
   async interactionCreate(interaction: Interaction) {
-    if (interaction.isCommand()) {
+    if (interaction.isCommand() || interaction.isMessageContextMenu()) {
       const startAt = now();
 
       if (!interaction.channel || interaction.channel.type === "DM" || !interaction.guild) {
@@ -60,7 +61,7 @@ class CommandSupport extends Module {
           .catch(this.logger.error);
       }
 
-      const message = new CommandMessage(this.bot, interaction);
+      const message = new CommandMessage(this.bot, interaction as any);
       const args = new CommandArgs(message);
 
       const commandName = args.getCommand();
@@ -78,6 +79,26 @@ class CommandSupport extends Module {
       if (!member)
         return this.logger.error("Failed to load Member " + interaction.user.id + " in Guild " + interaction.guild.id);
       interaction.member = member;
+
+      const cooldown = this.bot.cooldowns.hasCooldown(commandName, member.user.id);
+      if (cooldown) {
+        const cooldownEmbed = new MessageEmbed()
+          .setTimestamp()
+          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
+          .setDescription(message.translate("onCooldown", cooldown.toString()))
+          .setFooter({
+            text: "EazyAutodelete",
+            iconURL:
+              this.client.user!.avatarURL({
+                dynamic: true,
+              }) || "",
+          });
+
+        return await interaction.reply({
+          embeds: [cooldownEmbed],
+          ephemeral: true,
+        });
+      }
 
       await message.loadData();
 
@@ -129,7 +150,7 @@ class CommandSupport extends Module {
         const botMissingPermsEmbed = new MessageEmbed()
           .setTimestamp()
           .setColor(this.bot.utils.getColor("default") as ColorResolvable)
-          .setDescription(message.translate("config.missingBotPerms", channel.id, missingBotPerms.join(", ")))
+          .setDescription(message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")))
           .setFooter({
             text: "Questions? => /help",
             iconURL:
@@ -147,7 +168,7 @@ class CommandSupport extends Module {
         const noPermsEmbed = new MessageEmbed()
           .setTimestamp()
           .setColor(this.bot.utils.getColor("error") as ColorResolvable)
-          .setDescription(message.translate("config.missingPerms"))
+          .setDescription(message.translate("missingPerms"))
           .setFooter({
             text: "EazyAutodelete",
             iconURL:
@@ -162,29 +183,9 @@ class CommandSupport extends Module {
         });
       }
 
-      const cooldown = this.bot.cooldowns.hasCooldown(commandName, member.user.id);
-      if (cooldown) {
-        const cooldownEmbed = new MessageEmbed()
-          .setTimestamp()
-          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
-          .setDescription(message.translate("config.cooldown", cooldown + "ms"))
-          .setFooter({
-            text: "EazyAutodelete",
-            iconURL:
-              this.client.user!.avatarURL({
-                dynamic: true,
-              }) || "",
-          });
-
-        return await interaction.reply({
-          embeds: [cooldownEmbed],
-          ephemeral: true,
-        });
-      }
-
       await command.run(message, args);
 
-      this.bot.cooldowns.setCooldown(commandName, member.user.id);
+      this.bot.permissions.isBotMod(member.user.id) || this.bot.cooldowns.setCooldown(commandName, member.user.id);
 
       this.logger.info("Ran command '" + commandName + "' in " + (now() - startAt) + "ms", "CMD");
     } else if (interaction.isAutocomplete()) {
@@ -231,7 +232,11 @@ class CommandSupport extends Module {
           ephemeral: true,
           content: "⏰ You can not use buttons older than 5 minutes.",
         });
-        if (interaction.message instanceof Message && interaction.message.deletable)
+        if (
+          interaction.message instanceof Message &&
+          interaction.message.deletable &&
+          interaction.message.flags.bitfield === 0
+        )
           await interaction.message.delete().catch(this.logger.error);
         return;
       }
