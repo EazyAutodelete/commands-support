@@ -22,14 +22,17 @@ import {
   Permissions,
   SnowflakeUtil,
 } from "discord.js";
-import { msToDate, msToDuration } from "@eazyautodelete/bot-utils";
+import { msToDuration } from "@eazyautodelete/bot-utils";
 
 const now = performance.now;
 
 class CommandSupport extends Module {
+  disabledCommands: Map<string, string>;
   constructor(bot: Bot) {
     super(bot);
     this.name = "commands-support";
+
+    this.disabledCommands = new Map();
   }
 
   clientReady() {
@@ -61,6 +64,7 @@ class CommandSupport extends Module {
           .catch(this.logger.error);
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const message = new CommandMessage(this.bot, interaction as any);
       const args = new CommandArgs(message);
 
@@ -92,6 +96,8 @@ class CommandSupport extends Module {
           )
           .setFooter({
             text: "EazyAutodelete",
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             iconURL: this.client.user!.avatarURL({
               dynamic: true,
             })!,
@@ -104,34 +110,35 @@ class CommandSupport extends Module {
       }
 
       // TODO disabledCommands
-      /**
-      if (client.disabledCommands.has(commandName)) {
-        const disabledReason = client.disabledCommands.get(commandName);
+      if (this.disabledCommands.has(commandName)) {
+        const disabledReason = this.disabledCommands.get(commandName);
         if (!disabledReason) return;
 
         const commandDisabledEmbed = new MessageEmbed()
           .setTimestamp()
-          .setColor(client.colors.succesfull)
-          .setDescription(message.translate("config.commands.disabled", disabledReason))
+          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
+          .setDescription(message.translate("commandDisabled", disabledReason))
           .setFooter({
             text: "Questions? => /help",
-            iconURL:
-              client.user?.avatarURL({
-                dynamic: true,
-              }) || undefined,
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            iconURL: this.client.user!.avatarURL({
+              dynamic: true,
+            })!,
           });
 
         return await interaction.reply({
           embeds: [commandDisabledEmbed],
           ephemeral: true,
         });
-      }*/
+      }
 
       const missingBotPerms: bigint[] = [];
       const channel =
         interaction.channel || (await guild.channels.fetch(interaction.channelId).catch(this.logger.error));
       if (!channel) return;
 
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const clientMember = await guild.members.fetch(this.client.user!.id).catch(this.logger.error);
       if (!clientMember) return;
 
@@ -150,11 +157,12 @@ class CommandSupport extends Module {
       if (missingBotPerms.length >= 1) {
         const botMissingPermsEmbed = new MessageEmbed()
           .setTimestamp()
-          .setColor(this.bot.utils.getColor("default") as ColorResolvable)
+          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
           .setDescription(message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")))
           .setFooter({
             text: "Questions? => /help",
             iconURL:
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               this.client.user!.avatarURL({
                 dynamic: true,
               }) || "",
@@ -173,6 +181,7 @@ class CommandSupport extends Module {
           .setFooter({
             text: "EazyAutodelete",
             iconURL:
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               this.client.user!.avatarURL({
                 dynamic: true,
               }) || "",

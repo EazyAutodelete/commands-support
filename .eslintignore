@@ -2,3 +2,4 @@ build/**/*.js
 build/**/*.ts
 build/**
 *.d.ts
+node_modules/

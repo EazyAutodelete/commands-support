@@ -100,6 +100,7 @@
   "exclude": [
     "**/*.d.ts",
     "**/*.js",
-    "constants/"
+    "constants/",
+    "node_modules/",
   ]
 }
