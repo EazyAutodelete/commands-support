@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/EazyAutodelete/commands-support/compare/v1.2.0...v1.2.1) (2022-11-15)
+
+
+### Bug Fixes
+
+* **disbaledcmd:** fix message for disabled command ([dacd65f](https://github.com/EazyAutodelete/commands-support/commit/dacd65f19929bfd95d5b26ce2d9a0d8aaaf3ca6d))
+
 ## 1.2.0 (2022-11-14)
 
 
