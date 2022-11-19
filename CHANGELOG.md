@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/EazyAutodelete/commands-support/compare/v1.2.6...v1.3.0) (2022-11-19)
+
+
+### Features
+
+* **disabled:** use new commands config ([af79cdd](https://github.com/EazyAutodelete/commands-support/commit/af79cdda1c93609b045245f81465df301cfdb501))
+
 ### [1.2.6](https://github.com/EazyAutodelete/commands-support/compare/v1.2.5...v1.2.6) (2022-11-19)
 
 ### [1.2.5](https://github.com/EazyAutodelete/commands-support/compare/v1.2.4...v1.2.5) (2022-11-19)
