@@ -155,7 +155,7 @@ class CommandSupport extends Module {
           color: this.bot.utils.getColor("error") as ColorResolvable,
           description: message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")),
           footer: {
-            text: "Questions? => /help",
+            text: "Questions? => /support",
             iconURL:
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               this.client.user!.avatarURL({
