@@ -44,22 +44,23 @@ class CommandSupport extends Module {
       const startAt = now();
 
       if (!interaction.channel || interaction.channel.type === "DM" || !interaction.guild) {
-        const noDMsButton = new MessageActionRow().addComponents(
-          new MessageButton()
-            .setURL("https://eazyautodelete.xyz/invite/")
-            .setStyle("LINK")
-            .setLabel("Add EazyAutodelete")
-        );
-
-        const noDMsEmbed = new MessageEmbed()
-          .setColor("#ff0000")
-          .setTitle(":x: Not supported!")
-          .setDescription("Commands via dm are not supported, you need to add EazyAutodelete to a server!");
-
         return await interaction
           .reply({
-            embeds: [noDMsEmbed],
-            components: [noDMsButton],
+            embeds: [
+              {
+                color: "#ff0000",
+                title: ":x: Not supported!",
+                description: this.bot.translate("noDMs", interaction.locale),
+              },
+            ],
+            components: [
+              {
+                type: 1,
+                components: [
+                  { type: 2, style: 5, label: "Add EazyAutodelete", url: "https://eazyautodelete.xyz/invite/" },
+                ],
+              },
+            ],
           })
           .catch(this.logger.error);
       }
