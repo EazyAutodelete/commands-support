@@ -13,6 +13,7 @@ import {
 } from "@eazyautodelete/core";
 import { ColorResolvable, GuildMember, Interaction, Message, Permissions, SnowflakeUtil } from "discord.js";
 import { msToDuration } from "@eazyautodelete/bot-utils";
+import { stringify } from "querystring";
 
 const now = performance.now;
 
@@ -104,8 +105,10 @@ class CommandSupport extends Module {
       }
 
       // TODO disabledCommands
-      if (this.disabledCommands.has(commandName)) {
-        const disabledReason = this.disabledCommands.get(commandName);
+      if (this.bot.config.commands.disabled.find((x: { name: string; reason: string }) => x.name === commandName)) {
+        const disabledReason = this.bot.config.commands.disabled.find(
+          (x: { name: string; reason: string }) => x.name === commandName
+        ).reason;
         if (!disabledReason) return;
 
         const commandDisabledEmbed = {
