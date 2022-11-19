@@ -1,6 +1,6 @@
 {
   "name": "@eazyautodelete/commands-support",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "💾 This EazyAutodelete-Module implements the support of ApplicationCommands.",
   "main": "src/CommandSupport.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "code": "git add . && npx cz",
-    "push": "npx standard-version && git push --follow-tags origin master && npm publish",
+    "push": "npx standard-version && git push --follow-tags origin main && npm publish",
     "code:push": "npm run code && npm run push"
   },
   "repository": {
