@@ -114,7 +114,7 @@ class CommandSupport extends Module {
         const commandDisabledEmbed = {
           timestamp: Date.now(),
           color: this.bot.utils.getColor("error") as ColorResolvable,
-          description: message.translate("commandDisabled", disabledReason),
+          description: message.translate("commandDisabled", commandName, disabledReason),
           footer: {
             text: "Questions? => /help",
 
