@@ -191,7 +191,11 @@ class CommandSupport extends Module {
         });
       }
 
-      await command.run(message, args);
+      try {
+        await command.run(message, args);
+      } catch (error) {
+        this.logger.error(error as string);
+      }
 
       this.bot.permissions.isBotMod(member.user.id) || this.bot.cooldowns.setCooldown(commandName, member.user.id);
 

@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Conventional Changelog Configuration",
+    "description": "Describes the configuration options supported by conventional-config for upstream tooling.",
+    "type": "object",
+    "properties": {
+        "header": {
+            "type": "string",
+            "description": "A string to be used as the main header section of the CHANGELOG.",
+            "default": "# Changelog\n\n"
+        },
+        "types": {
+            "description": "An array of `type` objects representing the explicitly supported commit message types, and whether they should show up in generated `CHANGELOG`s.",
+            "type": "array",
+            "items": {
+                "$ref": "#/definitions/type"
+            },
+            "default": [
+                {"type": "feat", "section": "Features"},
+                {"type": "fix", "section": "Bug Fixes"},
+                {"type": "chore", "hidden": true},
+                {"type": "docs", "hidden": true},
+                {"type": "style", "hidden": true},
+                {"type": "refactor", "section": "Code Refactoring"},
+                {"type": "perf", "section": "Performance Improvements"},
+                {"type": "test", "hidden": true}
+            ]
+        }
+    }
+}
