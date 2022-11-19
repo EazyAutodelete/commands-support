@@ -11,17 +11,7 @@ import {
   CommandModal,
   CommandModalArgs,
 } from "@eazyautodelete/core";
-import {
-  ColorResolvable,
-  GuildMember,
-  Interaction,
-  Message,
-  MessageActionRow,
-  MessageButton,
-  MessageEmbed,
-  Permissions,
-  SnowflakeUtil,
-} from "discord.js";
+import { ColorResolvable, GuildMember, Interaction, Message, Permissions, SnowflakeUtil } from "discord.js";
 import { msToDuration } from "@eazyautodelete/bot-utils";
 
 const now = performance.now;
@@ -44,13 +34,14 @@ class CommandSupport extends Module {
       const startAt = now();
 
       if (!interaction.channel || interaction.channel.type === "DM" || !interaction.guild) {
+        const userData = await this.bot.db.getUserSettings(interaction.user.id);
         return await interaction
           .reply({
             embeds: [
               {
                 color: "#ff0000",
                 title: ":x: Not supported!",
-                description: this.bot.translate("noDMs", interaction.locale),
+                description: this.bot.translate("noDMs", userData.language),
               },
             ],
             components: [
@@ -89,20 +80,22 @@ class CommandSupport extends Module {
 
       const cooldown = this.bot.cooldowns.hasCooldown(commandName, member.user.id);
       if (cooldown) {
-        const cooldownEmbed = new MessageEmbed()
-          .setTimestamp()
-          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
-          .setDescription(
-            message.translate("onCooldown", msToDuration(cooldown).length > 5 ? msToDuration(cooldown) : "1 second")
-          )
-          .setFooter({
+        const cooldownEmbed = {
+          color: this.bot.utils.getColor("error") as ColorResolvable,
+          description: message.translate(
+            "onCooldown",
+            msToDuration(cooldown).length > 5 ? msToDuration(cooldown) : "1 second"
+          ),
+          footer: {
             text: "EazyAutodelete",
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             iconURL: this.client.user!.avatarURL({
               dynamic: true,
             })!,
-          });
+          },
+          timestamp: new Date(),
+        };
 
         return await interaction.reply({
           embeds: [cooldownEmbed],
@@ -115,18 +108,19 @@ class CommandSupport extends Module {
         const disabledReason = this.disabledCommands.get(commandName);
         if (!disabledReason) return;
 
-        const commandDisabledEmbed = new MessageEmbed()
-          .setTimestamp()
-          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
-          .setDescription(message.translate("commandDisabled", commandName, disabledReason))
-          .setFooter({
+        const commandDisabledEmbed = {
+          timestamp: Date.now(),
+          color: this.bot.utils.getColor("error") as ColorResolvable,
+          description: message.translate("commandDisabled", disabledReason),
+          footer: {
             text: "Questions? => /help",
 
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             iconURL: this.client.user!.avatarURL({
               dynamic: true,
             })!,
-          });
+          },
+        };
 
         return await interaction.reply({
           embeds: [commandDisabledEmbed],
@@ -156,18 +150,20 @@ class CommandSupport extends Module {
         botPerms.has(s) || missingBotPerms.push(s);
       });
       if (missingBotPerms.length >= 1) {
-        const botMissingPermsEmbed = new MessageEmbed()
-          .setTimestamp()
-          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
-          .setDescription(message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")))
-          .setFooter({
+        const botMissingPermsEmbed = {
+          timestamp: Date.now(),
+          color: this.bot.utils.getColor("error") as ColorResolvable,
+          description: message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")),
+          footer: {
             text: "Questions? => /help",
             iconURL:
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               this.client.user!.avatarURL({
                 dynamic: true,
               }) || "",
-          });
+          },
+        };
+
         return await interaction.reply({
           embeds: [botMissingPermsEmbed],
           ephemeral: true,
@@ -175,18 +171,19 @@ class CommandSupport extends Module {
       }
 
       if (!this.bot.permissions.hasPermsToUseCommand(command, member, message.data.guild)) {
-        const noPermsEmbed = new MessageEmbed()
-          .setTimestamp()
-          .setColor(this.bot.utils.getColor("error") as ColorResolvable)
-          .setDescription(message.translate("missingPerms"))
-          .setFooter({
+        const noPermsEmbed = {
+          timestamp: Date.now(),
+          color: this.bot.utils.getColor("error") as ColorResolvable,
+          description: message.translate("missingPerms"),
+          footer: {
             text: "EazyAutodelete",
             iconURL:
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               this.client.user!.avatarURL({
                 dynamic: true,
               }) || "",
-          });
+          },
+        };
 
         return await interaction.reply({
           embeds: [noPermsEmbed],
@@ -216,11 +213,19 @@ class CommandSupport extends Module {
       if (dur >= 300) {
         await interaction.reply({
           ephemeral: true,
-          content: "⏰ You can not use buttons older than 5 minutes.",
+          embeds: [
+            {
+              color: this.bot.utils.getColor("error") as ColorResolvable,
+              description: this.bot.translate("expiredSelect", interaction.locale || "en"),
+            },
+          ],
         });
-        if (interaction.message instanceof Message && interaction.message.deletable)
-          await interaction.message.delete().catch(this.logger.error);
-        return;
+        if (
+          interaction.message instanceof Message &&
+          interaction.message.deletable &&
+          interaction.message.flags.bitfield === 0
+        )
+          return void (await interaction.message.delete().catch(this.logger.error));
       }
 
       const menu = new CommandMenu(this.bot, interaction);
@@ -241,15 +246,19 @@ class CommandSupport extends Module {
       if (dur >= 300) {
         await interaction.reply({
           ephemeral: true,
-          content: "⏰ You can not use buttons older than 5 minutes.",
+          embeds: [
+            {
+              color: this.bot.utils.getColor("error") as ColorResolvable,
+              description: this.bot.translate("expiredButton", interaction.locale || "en"),
+            },
+          ],
         });
         if (
           interaction.message instanceof Message &&
           interaction.message.deletable &&
           interaction.message.flags.bitfield === 0
         )
-          await interaction.message.delete().catch(this.logger.error);
-        return;
+          return void (await interaction.message.delete().catch(this.logger.error));
       }
 
       const button = new CommandButton(this.bot, interaction);
