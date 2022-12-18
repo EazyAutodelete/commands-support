@@ -1,17 +1,18 @@
 {
   "name": "@eazyautodelete/commands-support",
-  "version": "1.3.2",
+  "version": "1.4.15",
   "description": "💾 This EazyAutodelete-Module implements the support of ApplicationCommands.",
   "main": "src/CommandSupport.js",
   "scripts": {
     "format": "npx prettier --write .",
     "build": "tsc",
-    "module:build": "tsc",
+    "module:build": "tsc --target es2022",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "code": "git add . && npx cz",
     "push": "npx standard-version && git push --follow-tags origin main && npm publish",
-    "code:push": "npm run code && npm run push"
+    "code:push": "npm run code && npm run push",
+    "postinstall": "npm run module:build"
   },
   "repository": {
     "type": "git",
@@ -42,8 +43,9 @@
   },
   "homepage": "https://github.com/EazyAutodelete/commands-support#readme",
   "dependencies": {
-    "@eazyautodelete/core": "^3.3.4",
-    "discord.js": "^13.10.3",
+    "@eazyautodelete/bot-utils": "^1.1.0",
+    "@eazyautodelete/core": "^4.1.22",
+    "eris": "github:abalabahaha/eris#pull/1432/head",
     "typescript": "^4.8.2"
   },
   "devDependencies": {
@@ -62,6 +64,7 @@
     }
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://npm.pkg.github.com/"
   }
 }

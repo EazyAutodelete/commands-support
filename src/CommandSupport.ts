@@ -2,7 +2,7 @@ import {
   Bot,
   CommandButtonArgs,
   CommandMessage,
-  CommandArgs,
+  CommandMessageArgs,
   Command,
   CommandButton,
   Module,
@@ -11,11 +11,15 @@ import {
   CommandModal,
   CommandModalArgs,
 } from "@eazyautodelete/core";
-import { ColorResolvable, GuildMember, Interaction, Message, Permissions, SnowflakeUtil } from "discord.js";
-import { msToDuration } from "@eazyautodelete/bot-utils";
-import { stringify } from "querystring";
-
-const now = performance.now;
+import { msToDuration, snowflakeToDate } from "@eazyautodelete/bot-utils";
+import {
+  AutocompleteInteraction,
+  CommandInteraction,
+  ComponentInteraction,
+  GuildChannel,
+  Message,
+  ModalSubmitInteraction,
+} from "eris";
 
 class CommandSupport extends Module {
   disabledCommands: Map<string, string>;
@@ -30,17 +34,19 @@ class CommandSupport extends Module {
     this.logger.info("[💬] CommandSupport available!");
   }
 
-  async interactionCreate(interaction: Interaction) {
-    if (interaction.isCommand() || interaction.isMessageContextMenu()) {
-      const startAt = now();
+  async interactionCreate(
+    interaction: CommandInteraction | AutocompleteInteraction | ComponentInteraction | ModalSubmitInteraction
+  ) {
+    if (interaction.type === 2) {
+      const startAt = performance.now();
 
-      if (!interaction.channel || interaction.channel.type === "DM" || !interaction.guild) {
-        const userData = await this.bot.db.getUserSettings(interaction.user.id);
+      if (!interaction.channel || interaction.channel.type === 1 || !interaction.guildID) {
+        const userData = interaction.user?.id ? await this.db.getUserSettings(interaction.user.id) : { language: "en" };
         return await interaction
-          .reply({
+          .createMessage({
             embeds: [
               {
-                color: "#ff0000",
+                color: this.bot.utils.getColor("error"),
                 title: ":x: Not supported!",
                 description: this.bot.translate("noDMs", userData.language),
               },
@@ -57,24 +63,20 @@ class CommandSupport extends Module {
           .catch(this.logger.error);
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const message = new CommandMessage(this.bot, interaction as any);
-      const args = new CommandArgs(message);
+      const message = new CommandMessage(this.bot, interaction);
+      const args = new CommandMessageArgs(message);
 
       const commandName = args.getCommand();
       const command = <Command>this.bot.commands.get(commandName);
       if (!command) return this.logger.warn(`Command ${commandName} not found!`, "CMD");
 
-      const guild =
-        this.client.guilds.cache.get(interaction.guild.id) || (await this.client.guilds.fetch(interaction.guild.id));
+      const guild = this.bot.client.guilds.get(interaction.guildID);
+      if (!guild) return;
 
-      const member =
-        <GuildMember>interaction.member ||
-        <GuildMember>guild.members.cache.get(interaction.user.id) ||
-        <GuildMember>await guild.members.fetch(interaction.user.id).catch(this.logger.error);
+      const member = interaction.member || (interaction.user?.id ? guild.members.get(interaction.user.id) : null);
 
-      if (!member)
-        return this.logger.error("Failed to load Member " + interaction.user.id + " in Guild " + interaction.guild.id);
+      if (!member) return;
+
       interaction.member = member;
 
       await message.loadData();
@@ -82,29 +84,24 @@ class CommandSupport extends Module {
       const cooldown = this.bot.cooldowns.hasCooldown(commandName, member.user.id);
       if (cooldown) {
         const cooldownEmbed = {
-          color: this.bot.utils.getColor("error") as ColorResolvable,
+          color: this.bot.utils.getColor("error"),
           description: message.translate(
             "onCooldown",
             msToDuration(cooldown).length > 5 ? msToDuration(cooldown) : "1 second"
           ),
           footer: {
             text: "EazyAutodelete",
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            iconURL: this.client.user!.avatarURL({
-              dynamic: true,
-            })!,
+            iconURL: this.client.user.avatarURL,
           },
           timestamp: new Date(),
         };
 
-        return await interaction.reply({
+        return await interaction.createMessage({
           embeds: [cooldownEmbed],
-          ephemeral: true,
+          flags: 64,
         });
       }
 
-      // TODO disabledCommands
       if (this.bot.config.commands.disabled.find((x: { name: string; reason: string }) => x.name === commandName)) {
         const disabledReason = this.bot.config.commands.disabled.find(
           (x: { name: string; reason: string }) => x.name === commandName
@@ -112,40 +109,32 @@ class CommandSupport extends Module {
         if (!disabledReason) return;
 
         const commandDisabledEmbed = {
-          timestamp: Date.now(),
-          color: this.bot.utils.getColor("error") as ColorResolvable,
+          timestamp: new Date(),
+          color: this.bot.utils.getColor("error"),
           description: message.translate("commandDisabled", commandName, disabledReason),
           footer: {
             text: "Questions? => /help",
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            iconURL: this.client.user!.avatarURL({
-              dynamic: true,
-            })!,
+            iconURL: this.client.user.avatarURL,
           },
         };
 
-        return await interaction.reply({
+        return await interaction.createMessage({
           embeds: [commandDisabledEmbed],
-          ephemeral: true,
+          flags: 64,
         });
       }
 
       const missingBotPerms: bigint[] = [];
-      const channel =
-        interaction.channel || (await guild.channels.fetch(interaction.channelId).catch(this.logger.error));
+      const channelId = interaction.channel.id;
+      const channel = <GuildChannel>(interaction.channel || this.bot.client.getChannel(channelId));
       if (!channel) return;
 
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const clientMember = await guild.members.fetch(this.client.user!.id).catch(this.logger.error);
+      const clientMember = guild.members.get(this.client.user.id);
       if (!clientMember) return;
 
-      const botPerms = channel.permissionsFor(clientMember);
-      const defaultPerms = [
-        Permissions.FLAGS.SEND_MESSAGES,
-        Permissions.FLAGS.EMBED_LINKS,
-        Permissions.FLAGS.USE_EXTERNAL_EMOJIS,
-      ];
+      const botPerms = channel.permissionsOf(this.client.user.id);
+      const defaultPerms = [BigInt(2048), BigInt(16384), BigInt(262144)];
+
       defaultPerms.map(s => {
         botPerms.has(s) || missingBotPerms.push(s);
       });
@@ -154,43 +143,35 @@ class CommandSupport extends Module {
       });
       if (missingBotPerms.length >= 1) {
         const botMissingPermsEmbed = {
-          timestamp: Date.now(),
-          color: this.bot.utils.getColor("error") as ColorResolvable,
+          timestamp: new Date(),
+          color: this.bot.utils.getColor("error"),
           description: message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")),
           footer: {
             text: "Questions? => /support",
-            iconURL:
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              this.client.user!.avatarURL({
-                dynamic: true,
-              }) || "",
+            iconURL: this.client.user.avatarURL,
           },
         };
 
-        return await interaction.reply({
+        return await interaction.createMessage({
           embeds: [botMissingPermsEmbed],
-          ephemeral: true,
+          flags: 64,
         });
       }
 
       if (!this.bot.permissions.hasPermsToUseCommand(command, member, message.data.guild)) {
         const noPermsEmbed = {
-          timestamp: Date.now(),
-          color: this.bot.utils.getColor("error") as ColorResolvable,
+          timestamp: new Date(),
+          color: this.bot.utils.getColor("error"),
           description: message.translate("missingPerms"),
           footer: {
             text: "EazyAutodelete",
-            iconURL:
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              this.client.user!.avatarURL({
-                dynamic: true,
-              }) || "",
+            iconURL: this.client.user.avatarURL,
           },
         };
 
-        return await interaction.reply({
+        return await interaction.createMessage({
           embeds: [noPermsEmbed],
-          ephemeral: true,
+          flags: 64,
         });
       }
 
@@ -202,37 +183,39 @@ class CommandSupport extends Module {
 
       this.bot.permissions.isBotMod(member.user.id) || this.bot.cooldowns.setCooldown(commandName, member.user.id);
 
-      this.logger.info("Ran command '" + commandName + "' in " + (now() - startAt) + "ms", "CMD");
-    } else if (interaction.isAutocomplete()) {
-      const commandName = interaction.commandName;
+      this.logger.info("Ran command '" + commandName + "' in " + (performance.now() - startAt) + "ms", "CMD");
+    } else if (interaction.type === 4) {
+      const commandName = interaction.data.name;
       const command = <Command>this.bot.commands.get(commandName);
       if (!command) return this.logger.warn(`Command:Autocomplete ${commandName} not found!`, "CMD");
 
-      const autocompleteQuery = interaction.options.data[0].value;
-      if (typeof autocompleteQuery != "string") return;
-      const queryResults = await command.autocompleteHandler(autocompleteQuery);
+      const opt = interaction.data.options;
+      if (opt[0].type === 3) {
+        const autocompleteQuery = opt[0].value;
+        if (typeof autocompleteQuery != "string") return;
+        const queryResults = await command.autocompleteHandler(autocompleteQuery);
 
-      return await interaction.respond(queryResults);
-    } else if (interaction.isSelectMenu()) {
-      const created = SnowflakeUtil.deconstruct(interaction.message.id).timestamp;
-      const dur = (new Date().getTime() - created) / 1000;
+        return await interaction.result(queryResults);
+      }
+    } else if (interaction.type === 3 && interaction.data.component_type === 3) {
+      const created = snowflakeToDate(interaction.message.id);
+      const dur = (new Date().getTime() - created.getTime()) / 1000;
 
       if (dur >= 300) {
-        await interaction.reply({
-          ephemeral: true,
+        await interaction.createMessage({
+          flags: 64,
           embeds: [
             {
-              color: this.bot.utils.getColor("error") as ColorResolvable,
-              description: this.bot.translate("expiredSelect", interaction.locale || "en"),
+              color: this.bot.utils.getColor("error"),
+              description: this.bot.translate(
+                "expiredSelect",
+                interaction.user ? (await this.bot.db.getUserSettings(interaction.user.id)).language : "en"
+              ),
             },
           ],
         });
-        if (
-          interaction.message instanceof Message &&
-          interaction.message.deletable &&
-          interaction.message.flags.bitfield === 0
-        )
-          return void (await interaction.message.delete().catch(this.logger.error));
+        if (isMessageDeletable(interaction.message)) await interaction.message.delete().catch(this.logger.error);
+        return;
       }
 
       const menu = new CommandMenu(this.bot, interaction);
@@ -246,26 +229,25 @@ class CommandSupport extends Module {
 
         return command.selectMenuHandler(menu, args);
       }
-    } else if (interaction.isButton()) {
-      const created = SnowflakeUtil.deconstruct(interaction.message.id).timestamp;
-      const dur = (new Date().getTime() - created) / 1000;
+    } else if (interaction.type === 3 && interaction.data.component_type === 2) {
+      const created = snowflakeToDate(interaction.message.id);
+      const dur = (new Date().getTime() - created.getTime()) / 1000;
 
       if (dur >= 300) {
-        await interaction.reply({
-          ephemeral: true,
+        await interaction.createMessage({
+          flags: 64,
           embeds: [
             {
-              color: this.bot.utils.getColor("error") as ColorResolvable,
-              description: this.bot.translate("expiredButton", interaction.locale || "en"),
+              color: this.bot.utils.getColor("error"),
+              description: this.bot.translate(
+                "expiredButton",
+                interaction.user ? (await this.bot.db.getUserSettings(interaction.user.id)).language : "en"
+              ),
             },
           ],
         });
-        if (
-          interaction.message instanceof Message &&
-          interaction.message.deletable &&
-          interaction.message.flags.bitfield === 0
-        )
-          return void (await interaction.message.delete().catch(this.logger.error));
+        if (isMessageDeletable(interaction.message)) await interaction.message.delete().catch(this.logger.error);
+        return;
       }
 
       const button = new CommandButton(this.bot, interaction);
@@ -280,7 +262,7 @@ class CommandSupport extends Module {
 
         return await command.buttonHandler(button, args);
       }
-    } else if (interaction.isModalSubmit()) {
+    } else if (interaction.type === 5) {
       const modal = new CommandModal(this.bot, interaction);
       const args = new CommandModalArgs(modal);
 
@@ -298,3 +280,19 @@ class CommandSupport extends Module {
 }
 
 export default CommandSupport;
+
+function isMessageDeletable(message: Message) {
+  if (!message.guildID) return message.author.id === message.channel.client.user.id;
+  const channel = message.channel;
+  if (channel instanceof GuildChannel) {
+    const permissions = channel.permissionsOf(channel.client.user.id);
+    if (!permissions) return false;
+    if (permissions.has("administrator")) return true;
+    const timeoutUntil = channel.guild.members.get(channel.client.user.id)?.communicationDisabledUntil;
+    return (
+      (timeoutUntil && timeoutUntil < Date.now()) ||
+      message.author.id === channel.client.user.id ||
+      permissions.has("manageMessages")
+    );
+  }
+}
