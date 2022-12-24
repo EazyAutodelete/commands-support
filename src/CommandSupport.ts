@@ -113,7 +113,7 @@ class CommandSupport extends Module {
           color: this.bot.utils.getColor("error"),
           description: message.translate("commandDisabled", commandName, disabledReason),
           footer: {
-            text: "Questions? => /help",
+            text: this.client.user.username,
             iconURL: this.client.user.avatarURL,
           },
         };
@@ -147,7 +147,7 @@ class CommandSupport extends Module {
           color: this.bot.utils.getColor("error"),
           description: message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")),
           footer: {
-            text: "Questions? => /support",
+            text: this.client.user.username,
             iconURL: this.client.user.avatarURL,
           },
         };
