@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.17](https://github.com/EazyAutodelete/commands-support/compare/v1.4.16...v1.4.17) (2022-12-24)
+
+
+### Bug Fixes
+
+* **cmddisabled:** fix ugly cmd disabled embed ([08aa4df](https://github.com/EazyAutodelete/commands-support/commit/08aa4df00e43b712a853ed2ac882d51382bfe113))
+
 ### [1.4.16](https://github.com/EazyAutodelete/commands-support/compare/v1.3.2...v1.4.16) (2022-12-18)
 
 
