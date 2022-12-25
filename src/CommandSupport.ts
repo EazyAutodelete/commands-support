@@ -106,22 +106,22 @@ class CommandSupport extends Module {
         const disabledReason = this.bot.config.commands.disabled.find(
           (x: { name: string; reason: string }) => x.name === commandName
         ).reason;
-        if (!disabledReason) return;
+        if (disabledReason && !this.bot.permissions.isBotMod(member.user.id)) {
+          const commandDisabledEmbed = {
+            timestamp: new Date(),
+            color: this.bot.utils.getColor("error"),
+            description: message.translate("commandDisabled", commandName, disabledReason),
+            footer: {
+              text: this.client.user.username,
+              iconURL: this.client.user.avatarURL,
+            },
+          };
 
-        const commandDisabledEmbed = {
-          timestamp: new Date(),
-          color: this.bot.utils.getColor("error"),
-          description: message.translate("commandDisabled", commandName, disabledReason),
-          footer: {
-            text: this.client.user.username,
-            iconURL: this.client.user.avatarURL,
-          },
-        };
-
-        return await interaction.createMessage({
-          embeds: [commandDisabledEmbed],
-          flags: 64,
-        });
+          return await interaction.createMessage({
+            embeds: [commandDisabledEmbed],
+            flags: 64,
+          });
+        }
       }
 
       const missingBotPerms: bigint[] = [];

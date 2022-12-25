@@ -9,10 +9,8 @@
     "module:build": "tsc --target es2022",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "code": "git add . && npx cz",
-    "push": "npx standard-version && git push --follow-tags origin main && npm publish",
-    "code:push": "npm run code && npm run push",
-    "postinstall": "npm run module:build"
+    "postinstall": "npm run module:build",
+    "postpublish": "git push --follow-tags origin main"
   },
   "repository": {
     "type": "git",
