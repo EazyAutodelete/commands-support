@@ -1,6 +1,6 @@
 {
   "name": "@eazyautodelete/commands-support",
-  "version": "1.4.18",
+  "version": "1.4.19",
   "description": "💾 This EazyAutodelete-Module implements the support of ApplicationCommands.",
   "main": "src/CommandSupport.js",
   "scripts": {
