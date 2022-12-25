@@ -41,8 +41,8 @@
   },
   "homepage": "https://github.com/EazyAutodelete/commands-support#readme",
   "dependencies": {
-    "@eazyautodelete/bot-utils": "^1.1.0",
-    "@eazyautodelete/core": "^4.1.30",
+    "@eazyautodelete/bot-utils": "^1.1.1",
+    "@eazyautodelete/core": "^4.1.36",
     "eris": "github:EazyAutodelete/eris",
     "typescript": "^4.8.2"
   },
