@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.18](https://github.com/EazyAutodelete/commands-support/compare/v1.4.17...v1.4.18) (2022-12-25)
+
+
+### Bug Fixes
+
+* **disbaled:** let bot mods run disabled cmds ([ae41cb5](https://github.com/EazyAutodelete/commands-support/commit/ae41cb5e9b3b7b37f53c1e147a8db9c1729251a4))
+
 ### [1.4.17](https://github.com/EazyAutodelete/commands-support/compare/v1.4.16...v1.4.17) (2022-12-24)
 
 
