@@ -197,7 +197,14 @@ class CommandSupport extends Module {
 
         return await interaction.result(queryResults);
       }
-    } else if (interaction.type === 3 && interaction.data.component_type === 3) {
+    } else if (
+      interaction.type === 3 &&
+      (interaction.data.component_type === 3 ||
+        interaction.data.component_type === 5 ||
+        interaction.data.component_type === 6 ||
+        interaction.data.component_type === 7 ||
+        interaction.data.component_type === 8)
+    ) {
       const created = snowflakeToDate(interaction.message.id);
       const dur = (new Date().getTime() - created.getTime()) / 1000;
 
