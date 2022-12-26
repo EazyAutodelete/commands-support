@@ -214,7 +214,8 @@ class CommandSupport extends Module {
             },
           ],
         });
-        if (isMessageDeletable(interaction.message)) await interaction.message.delete().catch(this.logger.error);
+
+        if (isMessageDeletable(interaction.message)) await interaction.deleteMessage(interaction.message.id);
         return;
       }
 
@@ -246,7 +247,7 @@ class CommandSupport extends Module {
             },
           ],
         });
-        if (isMessageDeletable(interaction.message)) await interaction.message.delete().catch(this.logger.error);
+        if (isMessageDeletable(interaction.message)) await interaction.deleteMessage(interaction.message.id);
         return;
       }
 
