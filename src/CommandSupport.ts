@@ -224,7 +224,7 @@ class CommandSupport extends Module {
       if (args.isCommand()) {
         const commandName = args.getCommand();
         const command = <Command>this.bot.commands.get(commandName);
-        if (!command) return this.logger.warn(`Command:SelectMenu ${commandName} not found!`, "CMD");
+        if (!command) return this.logger.warn(`Command:SelectMenu "${commandName}" not found!`, "CMD");
 
         await menu.loadData();
 
