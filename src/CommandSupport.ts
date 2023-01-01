@@ -199,11 +199,11 @@ class CommandSupport extends Module {
       }
     } else if (
       interaction.type === 3 &&
-      (interaction.data.component_type === 3 ||
-        interaction.data.component_type === 5 ||
-        interaction.data.component_type === 6 ||
-        interaction.data.component_type === 7 ||
-        interaction.data.component_type === 8)
+      ((<any>interaction.data).component_type === 3 ||
+        (<any>interaction.data).component_type === 5 ||
+        (<any>interaction.data).component_type === 6 ||
+        (<any>interaction.data).component_type === 7 ||
+        (<any>interaction.data).component_type === 8)
     ) {
       const created = snowflakeToDate(interaction.message.id);
       const dur = (new Date().getTime() - created.getTime()) / 1000;
