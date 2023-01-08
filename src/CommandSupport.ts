@@ -19,6 +19,7 @@ import {
   GuildChannel,
   Message,
   ModalSubmitInteraction,
+  Permission,
 } from "eris";
 
 class CommandSupport extends Module {
@@ -124,7 +125,7 @@ class CommandSupport extends Module {
         }
       }
 
-      const missingBotPerms: bigint[] = [];
+      const missingBotPerms: string[] = [];
       const channelId = interaction.channel.id;
       const channel = <GuildChannel>(interaction.channel || this.bot.client.getChannel(channelId));
       if (!channel) return;
@@ -133,19 +134,19 @@ class CommandSupport extends Module {
       if (!clientMember) return;
 
       const botPerms = channel.permissionsOf(this.client.user.id);
-      const defaultPerms = [BigInt(2048), BigInt(16384), BigInt(262144)];
+      const defaultPerms = ["sendMessages", "embedLinks", "readMessageHistory"];
 
       defaultPerms.map(s => {
-        botPerms.has(s) || missingBotPerms.push(s);
+        botPerms.has(s as any) || missingBotPerms.push(s);
       });
       command.botPermissions.map(s => {
-        botPerms.has(s) || missingBotPerms.push(s);
+        botPerms.has(s) || missingBotPerms.push(s.toLocaleString());
       });
       if (missingBotPerms.length >= 1) {
         const botMissingPermsEmbed = {
           timestamp: new Date(),
           color: this.bot.utils.getColor("error"),
-          description: message.translate("missingBotPerms", channel.id, missingBotPerms.join(", ")),
+          description: message.translate("missingBotPerms", missingBotPerms.join(", ")),
           footer: {
             text: this.client.user.username,
             iconURL: this.client.user.avatarURL,
