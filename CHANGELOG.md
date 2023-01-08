@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.23](https://github.com/EazyAutodelete/commands-support/compare/v1.4.22...v1.4.23) (2023-01-08)
+
+
+### Bug Fixes
+
+* **perms:** use perm names, not numbers ([61ff92d](https://github.com/EazyAutodelete/commands-support/commit/61ff92dda48810a50a5f800be0cbb7b03a8a0bb6))
+
 ### [1.4.22](https://github.com/EazyAutodelete/commands-support/compare/v1.4.21...v1.4.22) (2023-01-01)
 
 
