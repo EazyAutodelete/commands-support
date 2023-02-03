@@ -179,7 +179,7 @@ class CommandSupport extends Module {
       try {
         await command.run(message, args);
       } catch (error) {
-        this.logger.error(error as string);
+        this.logger.error(`[CommandsSupport:interactionCreate]: ` + error);
       }
 
       this.bot.permissions.isBotMod(member.user.id) || this.bot.cooldowns.setCooldown(commandName, member.user.id);
