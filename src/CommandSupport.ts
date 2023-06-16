@@ -196,7 +196,9 @@ class CommandSupport extends Module {
         if (typeof autocompleteQuery != "string") return;
         const queryResults = await command.autocompleteHandler(autocompleteQuery);
 
-        return await interaction.result(queryResults);
+        return await interaction
+          .result(queryResults)
+          .catch(e => this.logger.error("[CommandsSupport:Autocomplete]: " + e));
       }
     } else if (
       interaction.type === 3 &&
