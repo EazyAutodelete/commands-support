@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.26](https://github.com/EazyAutodelete/commands-support/compare/v1.4.25...v1.4.26) (2023-07-13)
+
+
+### Bug Fixes
+
+* **member:** get correct member ([a38a8c1](https://github.com/EazyAutodelete/commands-support/commit/a38a8c178f37f5910ef15f60c310e4d43e292645))
+
 ### [1.4.25](https://github.com/EazyAutodelete/commands-support/compare/v1.4.24...v1.4.25) (2023-06-16)
 
 
