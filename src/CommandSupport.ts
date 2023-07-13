@@ -74,8 +74,7 @@ class CommandSupport extends Module {
       const guild = this.bot.client.guilds.get(interaction.guildID);
       if (!guild) return;
 
-      const member = interaction.member || (interaction.user?.id ? guild.members.get(interaction.user.id) : null);
-
+      const member = interaction.member || (interaction.user?.id && guild.members.get(interaction.user.id));
       if (!member) return;
 
       interaction.member = member;
